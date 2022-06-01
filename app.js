@@ -4,8 +4,8 @@ console.log("Let's get this party started!");
 
 const API_KEY = 'MhAodEJIJxQMxW9XqxKjyXfNYdLoOIym';
 const searchTerm = $('#giphy-search');
-
-axios.get('http://api.giphy.com/v1/gifs/search', {params: {'q': searchTerm, 'api_key': API_KEY}});
+const $giphyArea = $('#giphy-area')
+axios.get('http://api.giphy.com/v1/gifs/search', {params: {q: searchTerm, api_key: API_KEY}});
 
 async function getGiphy(event){
     event.preventDefault();
@@ -17,14 +17,41 @@ async function getGiphy(event){
     let response = await axios.get(`http://api.giphy.com/v1/gifs/search?q=${searchValue}&api_key=${API_KEY}`);
 
     console.log('getGiphy resp=', response);
-    $('#giphy').html(response.data.data.title);
 
-    showGiphy();
-}
-async function showGiphy() {
-    let giphyImage = $('<giphy-image>')
-    ("giphy-image").appendTo('#giphy-area')
+    let foundGiphies = response.data.data.map(image =>image.images.original.url);
+    let giphy = searchForGiphy(foundGiphies);
+    console.log('giphy',giphy);
+
+    //$('#giphy').html(response.data.data.title);
+
+    showGiphy(giphy);
 }
 
+function showGiphy(giphy) {
+    const $newGiphyContainer = $('<div>');
+    const $newGiphy = $('<img>', {
+        'class': 'giphy',
+        src: giphy,
+    }).css({
+        'width': '400px',
+        'height': '400px'});
+
+    ($newGiphyContainer).append($newGiphy);
+    ($newGiphyContainer).appendTo($giphyArea);
+}
+
+function searchForGiphy(giphyList) {
+ //get all the titles that include the search term and store in a new list
+ //use a random number to return one of these titles
+    let numberOfChoices = giphyList.length
+    let giphyIndex = Math.round(Math.random() * numberOfChoices)
+    return giphyList[giphyIndex]
+}
+
+function removeGiphy(event) {
+    event.preventDefault();
+    $giphyArea.empty('.giphy')
+}
 
 $('form').on('submit', getGiphy);
+$('#remove').on('click', removeGiphy)
